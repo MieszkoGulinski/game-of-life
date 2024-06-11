@@ -1,0 +1,44 @@
+/* Implementation of Game of Life in Rexx, particularly BREXX/370 running on MVS TK5 */
+
+CALL IMPORT FSSAPI
+ADDRESS FSS
+CALL FSSINIT
+
+CALL FSSTEXT 'Command ===>', 3, 6, , #WHITE+#PROT
+CALL FSSFIELD 'CMD', 3, 16, , #GREEN
+CALL FSSCURSOR 'CMD'
+
+width = 20
+height = 20
+
+currentBoard = MCREATE(width, height)
+nextBoard = MCREATE(width, height)
+
+/* Main loop */
+DO FOREVER
+  /* Display the board and score */
+  DO y=1 TO height
+    DO x=1 TO width
+      cellValue = MGET(currentBoard,x,y)
+      IF cellValue = 1 THEN
+        line = line || '#'
+      ELSE
+        line = line || ' '
+    END
+
+    CALL FSSTEXT line, y+7, 3, , #WHITE+#PROT
+  END
+
+  key = FSSREFRESH()
+  IF key = 243 THEN LEAVE /* F3 to close the program */
+
+  userCommand = FSSFGET('CMD')
+
+  CALL FSSFSET 'CMD', '     ' /* Clear the field */
+  CALL FSSCURSOR 'CMD'
+
+  /* Run the command here */
+END
+
+CALL FSSCLOSE /* Terminate Screen Environment */
+RETURN 0
