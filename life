@@ -10,8 +10,9 @@ CALL FSSCURSOR 'ZCMD'
 width = 10
 height = 10
 
-currentBoard = MCREATE(width, height)
-nextBoard = MCREATE(width, height)
+/* We use integer arrays, because writing and reading floating point matrices results in a round-off error */
+currentBoard = ICREATE(width * height)
+nextBoard = ICREATE(width * height)
 
 /* Main loop */
 DO FOREVER
@@ -20,7 +21,8 @@ DO FOREVER
     line = ''
 
     DO x=1 TO width
-      cellValue = MGET(currentBoard,x,y)
+      cellIndex = (y-1) * width + x /* arrays are 1-indexed */
+      cellValue = IGET(currentBoard, cellIndex)
       IF cellValue = 1 THEN
         line = line || '#'
       ELSE
@@ -43,26 +45,27 @@ CALL FSSCLOSE /* Terminate Screen Environment */
 RETURN 0
 
 runCommand:
-  PARSE ARG firstPart secondPart
+  ARG command
 
-  IF firstPart = 'random' THEN CALL createRandomBoard
-  IF firstPart = 'clear' THEN CALL clearBoard
-  IF firstPart = '' THEN CALL performStep
+  IF command = 'RANDOM' THEN CALL createRandomBoard
+  IF command = 'CLEAR' THEN CALL clearBoard
+  IF command = '' THEN CALL performStep
   /* Predefined boards */
-  IF firstPart = 'block' THEN CALL displayBlock
-  IF firstPart = 'beehive' THEN CALL displayBeehive
-  IF firstPart = 'blinker' THEN CALL displayBlinker
-  IF firstPart = 'beacon' THEN CALL displayBeacon
-  IF firstPart = 'glider' THEN CALL displayGlider
+  IF command = 'BLOCK' THEN CALL displayBlock
+  IF command = 'BEEHIVE' THEN CALL displayBeehive
+  IF command = 'BLINKER' THEN CALL displayBlinker
+  IF command = 'BEACON' THEN CALL displayBeacon
+  IF command = 'GLIDER' THEN CALL displayGlider
 
-  IF datatype(firstPart) = 'NUM' & datatype(secondPart) = 'NUM' THEN CALL toggleCell firstPart secondPart
-
+  PARSE VALUE command WITH x y
+  IF datatype(x) = 'NUM' & datatype(y) = 'NUM' THEN CALL toggleCell(x,y)
 RETURN
 
 createRandomBoard:
   DO y=1 TO height
     DO x=1 TO width
-      CALL MSET(currentBoard,x,y, random(0,1))
+      cellIndex = (y-1) * width + x
+      CALL ISET(currentBoard, cellIndex, random(0,1))
     END
   END
 RETURN
@@ -70,61 +73,130 @@ RETURN
 clearBoard:
   DO y=1 TO height
     DO x=1 TO width
-      CALL MSET(currentBoard,x,y, 0)
+      cellIndex = (y-1) * width + x
+      CALL ISET(currentBoard, cellIndex, 0)
     END
   END
+RETURN
+
+toggleCell:
+  ARG x, y
+
+  IF x<1 THEN RETURN
+  IF y<1 THEN RETURN
+  IF x>width THEN RETURN
+  IF y>height THEN RETURN
+
+  cellIndex = (y-1) * width + x
+
+  oldValue = IGET(currentBoard, cellIndex)
+  IF oldValue = 1 THEN
+    CALL ISET(currentBoard, cellIndex, 0)
+  ELSE
+    CALL ISET(currentBoard, cellIndex, 1)
 RETURN
 
 /* Predefined patterns */
 
 displayBlock:
   CALL clearBoard
-  CALL MSET(currentBoard,5,5,1)
-  CALL MSET(currentBoard,5,6,1)
-  CALL MSET(currentBoard,6,5,1)
-  CALL MSET(currentBoard,6,6,1)
+  CALL toggleCell(5,5)
+  CALL toggleCell(5,6)
+  CALL toggleCell(6,5)
+  CALL toggleCell(6,6)
 RETURN
 
 displayBeehive:
   CALL clearBoard
-  CALL MSET(currentBoard,5,5,1)
-  CALL MSET(currentBoard,6,5,1)
-  CALL MSET(currentBoard,4,6,1)
-  CALL MSET(currentBoard,7,6,1)
-  CALL MSET(currentBoard,5,8,1)
-  CALL MSET(currentBoard,6,8,1)
+  CALL toggleCell(5,5)
+  CALL toggleCell(6,5)
+  CALL toggleCell(4,6)
+  CALL toggleCell(7,6)
+  CALL toggleCell(5,8)
+  CALL toggleCell(6,8)
 RETURN
 
 displayBlinker:
   CALL clearBoard
-  CALL MSET(currentBoard,5,5,1)
-  CALL MSET(currentBoard,6,5,1)
-  CALL MSET(currentBoard,7,5,1)
+  CALL toggleCell(5,5)
+  CALL toggleCell(6,5)
+  CALL toggleCell(7,5)
 RETURN
 
 displayBeacon:
   CALL clearBoard
-  CALL MSET(currentBoard,5,5,1)
-  CALL MSET(currentBoard,6,5,1)
-  CALL MSET(currentBoard,5,6,1)
-  CALL MSET(currentBoard,6,6,1)
+  CALL toggleCell(5,5)
+  CALL toggleCell(6,5)
+  CALL toggleCell(5,6)
+  CALL toggleCell(6,6)
 
-  CALL MSET(currentBoard,7,7,1)
-  CALL MSET(currentBoard,7,8,1)
-  CALL MSET(currentBoard,8,7,1)
-  CALL MSET(currentBoard,8,8,1)
+  CALL toggleCell(7,7)
+  CALL toggleCell(7,8)
+  CALL toggleCell(8,7)
+  CALL toggleCell(8,8)
 RETURN
 
 displayGlider:
   CALL clearBoard
-  CALL MSET(currentBoard,4,3,1)
-  CALL MSET(currentBoard,5,4,1)
-  CALL MSET(currentBoard,3,5,1)
-  CALL MSET(currentBoard,4,5,1)
-  CALL MSET(currentBoard,5,5,1)
+  CALL toggleCell(4,3)
+  CALL toggleCell(5,4)
+  CALL toggleCell(3,5)
+  CALL toggleCell(4,5)
+  CALL toggleCell(5,5)
 RETURN
 
-/* Actual logic goes here */
+/* Actual logic */
 
 performStep:
+  DO y=1 TO height
+    DO x=1 TO width
+      cellIndex = (y-1) * width + x
+      currentValue = IGET(currentBoard, cellIndex)
+      neighborsCount = countAliveNeighbors(x,y)
+      newValue = currentValue
+
+      /* Apply Game of Life rules here */
+      IF currentValue = 1 & neighborsCount < 2 THEN newValue = 0
+      IF currentValue = 1 & neighborsCount > 3 THEN newValue = 0
+      IF currentValue = 0 & neighborsCount = 3 THEN newValue = 1
+
+      IF currentValue = 1 THEN SAY x || " " || y || " " || neighborsCount || " " || newValue
+
+      CALL ISET(nextBoard, cellIndex, newValue)
+    END
+  END
+
+  /* matrices created by MCREATE are referenced as pointers, not values, so they can be swapped */
+  tempBoardPtr = currentBoard
+  currentBoard = nextBoard
+  nextBoard = tempBoardPtr
 RETURN
+
+countAliveNeighbors:
+  ARG x, y
+  neighborsCount = 0
+
+  neighborsCount = neighborsCount + getValueAt(x-1,y-1)
+  neighborsCount = neighborsCount + getValueAt(x,y-1)
+  neighborsCount = neighborsCount + getValueAt(x+1,y-1)
+
+  neighborsCount = neighborsCount + getValueAt(x-1,y)
+  neighborsCount = neighborsCount + getValueAt(x+1,y)
+
+  neighborsCount = neighborsCount + getValueAt(x-1,y+1)
+  neighborsCount = neighborsCount + getValueAt(x,y+1)
+  neighborsCount = neighborsCount + getValueAt(x+1,y+1)
+RETURN neighborsCount
+
+getValueAt:
+  ARG x, y
+
+  /* Boundary condition - cells outside the board are always 0 */
+  IF x<1 THEN RETURN 0
+  IF y<1 THEN RETURN 0
+  IF x>width THEN RETURN 0
+  IF y>height THEN RETURN 0
+
+  cellIndex = (y-1) * width + x
+  value = IGET(currentBoard, cellIndex)
+RETURN value
