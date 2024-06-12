@@ -6,6 +6,7 @@ CALL FSSINIT
 CALL FSSTITLE 'Game of Life'
 CALL FSSCOMMAND
 CALL FSSCURSOR 'ZCMD'
+CALL FSSFSET 'ZCMD' ''
 
 width = 10
 height = 10
@@ -34,6 +35,7 @@ DO FOREVER
 
   key = FSSREFRESH()
   IF key = 243 THEN LEAVE /* F3 to close the program */
+  IF key = 241 THEN CALL displayHelp
 
   userCommand = FSSFGET('ZCMD')
   CALL runCommand userCommand
@@ -112,8 +114,8 @@ displayBeehive:
   CALL toggleCell(6,5)
   CALL toggleCell(4,6)
   CALL toggleCell(7,6)
-  CALL toggleCell(5,8)
-  CALL toggleCell(6,8)
+  CALL toggleCell(5,7)
+  CALL toggleCell(6,7)
 RETURN
 
 displayBlinker:
@@ -192,3 +194,13 @@ countAliveNeighbors:
     END
   END
 RETURN neighborsCount
+
+displayHelp:
+  SAY 'Commands:'
+  SAY ''
+  SAY 'random - generates random board'
+  SAY 'clear - clears the board'
+  SAY '(two numbers with one space between them) - toggle cell on/off'
+  SAY '(empty command, just pressing Enter) - evolve the board to next generation'
+  SAY ''
+RETURN
