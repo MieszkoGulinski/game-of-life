@@ -152,15 +152,13 @@ performStep:
     DO x=1 TO width
       cellIndex = (y-1) * width + x
       currentValue = IGET(currentBoard, cellIndex)
-      neighborsCount = countAliveNeighbors(x,y)
+      aliveNeighbors = countAliveNeighbors(x,y)
       newValue = currentValue
 
       /* Apply Game of Life rules here */
-      IF currentValue = 1 & neighborsCount < 2 THEN newValue = 0
-      IF currentValue = 1 & neighborsCount > 3 THEN newValue = 0
-      IF currentValue = 0 & neighborsCount = 3 THEN newValue = 1
-
-      IF currentValue = 1 THEN SAY x || " " || y || " " || neighborsCount || " " || newValue
+      IF currentValue = 1 & aliveNeighbors < 2 THEN newValue = 0
+      IF currentValue = 1 & aliveNeighbors > 3 THEN newValue = 0
+      IF currentValue = 0 & aliveNeighbors = 3 THEN newValue = 1
 
       CALL ISET(nextBoard, cellIndex, newValue)
     END
@@ -173,30 +171,24 @@ performStep:
 RETURN
 
 countAliveNeighbors:
-  ARG x, y
+  ARG cx, cy
   neighborsCount = 0
 
-  neighborsCount = neighborsCount + getValueAt(x-1,y-1)
-  neighborsCount = neighborsCount + getValueAt(x,y-1)
-  neighborsCount = neighborsCount + getValueAt(x+1,y-1)
+  DO dx = -1 TO 1
+    DO dy = -1 TO 1
+      nx = cx + dx
+      ny = cy + dy
 
-  neighborsCount = neighborsCount + getValueAt(x-1,y)
-  neighborsCount = neighborsCount + getValueAt(x+1,y)
+      /* Do not count the cell itself */
+      IF dx=0 & dy=0 THEN ITERATE
 
-  neighborsCount = neighborsCount + getValueAt(x-1,y+1)
-  neighborsCount = neighborsCount + getValueAt(x,y+1)
-  neighborsCount = neighborsCount + getValueAt(x+1,y+1)
+      /* Boundary condition - cells outside the board are always 0 */
+      IF nx>0 & ny>0 & nx<=width & nx<=height THEN DO
+        neighborCellIndex = (ny-1) * width + nx
+        neighborCellValue = IGET(currentBoard, neighborCellIndex)
+        neighborsCount = neighborsCount + neighborCellValue
+      END
+
+    END
+  END
 RETURN neighborsCount
-
-getValueAt:
-  ARG x, y
-
-  /* Boundary condition - cells outside the board are always 0 */
-  IF x<1 THEN RETURN 0
-  IF y<1 THEN RETURN 0
-  IF x>width THEN RETURN 0
-  IF y>height THEN RETURN 0
-
-  cellIndex = (y-1) * width + x
-  value = IGET(currentBoard, cellIndex)
-RETURN value
