@@ -1,23 +1,24 @@
-/* Implementation of Game of Life in Rexx, particularly BREXX/370 running on MVS TK5 */
+/* Implementation of Game of Life for BREXX/370 running on MVS TK5 using FSS mode and matrices extension */
 
 CALL IMPORT FSSAPI
 ADDRESS FSS
 CALL FSSINIT
+CALL FSSTITLE 'Game of Life'
+CALL FSSCOMMAND
+CALL FSSCURSOR 'ZCMD'
 
-CALL FSSTEXT 'Command ===>', 3, 6, , #WHITE+#PROT
-CALL FSSFIELD 'CMD', 3, 16, , #GREEN
-CALL FSSCURSOR 'CMD'
-
-width = 20
-height = 20
+width = 10
+height = 10
 
 currentBoard = MCREATE(width, height)
 nextBoard = MCREATE(width, height)
 
 /* Main loop */
 DO FOREVER
-  /* Display the board and score */
+  /* Display the board */
   DO y=1 TO height
+    line = ''
+
     DO x=1 TO width
       cellValue = MGET(currentBoard,x,y)
       IF cellValue = 1 THEN
@@ -32,13 +33,42 @@ DO FOREVER
   key = FSSREFRESH()
   IF key = 243 THEN LEAVE /* F3 to close the program */
 
-  userCommand = FSSFGET('CMD')
-
-  CALL FSSFSET 'CMD', '     ' /* Clear the field */
-  CALL FSSCURSOR 'CMD'
-
-  /* Run the command here */
+  userCommand = FSSFGET('ZCMD')
+  CALL runCommand userCommand
+  CALL FSSFSET 'ZCMD' ''
+  CALL FSSCURSOR 'ZCMD'
 END
 
 CALL FSSCLOSE /* Terminate Screen Environment */
 RETURN 0
+
+runCommand:
+  PARSE ARG firstPart secondPart
+
+  IF firstPart = 'random' THEN CALL createRandomBoard
+  IF firstPart = 'clear' THEN CALL clearBoard
+  IF firstPart = '' THEN CALL performStep
+  /* TODO commands for each specific predefined board */
+
+  IF datatype(firstPart) = 'NUM' & datatype(secondPart) = 'NUM' THEN CALL toggleCell firstPart secondPart
+
+RETURN
+
+createRandomBoard:
+  DO y=1 TO height
+    DO x=1 TO width
+      CALL MSET(currentBoard,x,y, random(0,1))
+    END
+  END
+RETURN
+
+clearBoard:
+  DO y=1 TO height
+    DO x=1 TO width
+      CALL MSET(currentBoard,x,y, 0)
+    END
+  END
+RETURN
+
+performStep:
+RETURN
