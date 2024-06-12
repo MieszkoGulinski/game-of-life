@@ -16,9 +16,12 @@ Also, a name of a predefined state can be used as a command - the predefined sta
 ```
 block
 beehive
-loaf
-...
+blinker
+beacon
+glider
 ```
+
+TODO: add more predefined patterns
 
 See the list [here](https://en.wikipedia.org/wiki/Conway%27s_Game_of_Life#Examples_of_patterns) for the patterns.
 
