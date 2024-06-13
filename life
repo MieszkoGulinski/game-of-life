@@ -1,4 +1,4 @@
-/* Implementation of Game of Life for BREXX/370 running on MVS TK5 using FSS mode and matrices extension */
+/* Implementation of Game of Life for BREXX/370 running on MVS TK5 using FSS mode and integer array extension */
 
 CALL IMPORT FSSAPI
 ADDRESS FSS
@@ -203,4 +203,9 @@ displayHelp:
   SAY '(two numbers with one space between them) - toggle cell on/off'
   SAY '(empty command, just pressing Enter) - evolve the board to next generation'
   SAY ''
+  SAY 'block - display block (non-changing shape)'
+  SAY 'beehive - display a beehive (non-changing shape)'
+  SAY 'blinker - display a blinker (cyclically repeating shape)'
+  SAY 'beacon - display a beacon (cyclickally repeating shape)'
+  SAY 'glider - display a glider (permanently moving shape)'
 RETURN
