@@ -17,6 +17,7 @@ Also, a name of a predefined state can be used as a command - the predefined sta
 block
 beehive
 blinker
+toad
 beacon
 glider
 ```

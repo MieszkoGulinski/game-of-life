@@ -8,8 +8,8 @@ CALL FSSCOMMAND
 CALL FSSCURSOR 'ZCMD'
 CALL FSSFSET 'ZCMD' ''
 
-width = 10
-height = 10
+width = 20
+height = 20
 
 /* We use integer arrays, because writing and reading floating point matrices results in a round-off error */
 currentBoard = ICREATE(width * height)
@@ -30,7 +30,7 @@ DO FOREVER
         line = line || ' '
     END
 
-    CALL FSSTEXT line, y+7, 3, , #WHITE+#PROT
+    CALL FSSTEXT line, y+4, 3, , #WHITE+#PROT
   END
 
   key = FSSREFRESH()
@@ -52,10 +52,13 @@ runCommand:
   IF command = 'RANDOM' THEN CALL createRandomBoard
   IF command = 'CLEAR' THEN CALL clearBoard
   IF command = '' THEN CALL performStep
+
   /* Predefined boards */
   IF command = 'BLOCK' THEN CALL displayBlock
   IF command = 'BEEHIVE' THEN CALL displayBeehive
+  IF command = 'TUB' THEN CALL displayTub
   IF command = 'BLINKER' THEN CALL displayBlinker
+  IF command = 'TOAD' THEN CALL displayToad
   IF command = 'BEACON' THEN CALL displayBeacon
   IF command = 'GLIDER' THEN CALL displayGlider
 
@@ -96,55 +99,6 @@ toggleCell:
     CALL ISET(currentBoard, cellIndex, 0)
   ELSE
     CALL ISET(currentBoard, cellIndex, 1)
-RETURN
-
-/* Predefined patterns */
-
-displayBlock:
-  CALL clearBoard
-  CALL toggleCell(5,5)
-  CALL toggleCell(5,6)
-  CALL toggleCell(6,5)
-  CALL toggleCell(6,6)
-RETURN
-
-displayBeehive:
-  CALL clearBoard
-  CALL toggleCell(5,5)
-  CALL toggleCell(6,5)
-  CALL toggleCell(4,6)
-  CALL toggleCell(7,6)
-  CALL toggleCell(5,7)
-  CALL toggleCell(6,7)
-RETURN
-
-displayBlinker:
-  CALL clearBoard
-  CALL toggleCell(5,5)
-  CALL toggleCell(6,5)
-  CALL toggleCell(7,5)
-RETURN
-
-displayBeacon:
-  CALL clearBoard
-  CALL toggleCell(5,5)
-  CALL toggleCell(6,5)
-  CALL toggleCell(5,6)
-  CALL toggleCell(6,6)
-
-  CALL toggleCell(7,7)
-  CALL toggleCell(7,8)
-  CALL toggleCell(8,7)
-  CALL toggleCell(8,8)
-RETURN
-
-displayGlider:
-  CALL clearBoard
-  CALL toggleCell(4,3)
-  CALL toggleCell(5,4)
-  CALL toggleCell(3,5)
-  CALL toggleCell(4,5)
-  CALL toggleCell(5,5)
 RETURN
 
 /* Actual logic */
@@ -194,6 +148,73 @@ countAliveNeighbors:
     END
   END
 RETURN neighborsCount
+
+/* Predefined patterns */
+
+displayBlock:
+  CALL clearBoard
+  CALL toggleCell(5,5)
+  CALL toggleCell(5,6)
+  CALL toggleCell(6,5)
+  CALL toggleCell(6,6)
+RETURN
+
+displayBeehive:
+  CALL clearBoard
+  CALL toggleCell(5,5)
+  CALL toggleCell(6,5)
+  CALL toggleCell(4,6)
+  CALL toggleCell(7,6)
+  CALL toggleCell(5,7)
+  CALL toggleCell(6,7)
+RETURN
+
+displayTub:
+  CALL clearBoard
+  CALL toggleCell(5,5)
+  CALL toggleCell(4,6)
+  CALL toggleCell(6,6)
+  CALL toggleCell(5,7)
+RETURN
+
+displayBlinker:
+  CALL clearBoard
+  CALL toggleCell(5,5)
+  CALL toggleCell(6,5)
+  CALL toggleCell(7,5)
+RETURN
+
+displayToad:
+  CALL clearBoard
+  CALL toggleCell(4,3)
+  CALL toggleCell(5,3)
+  CALL toggleCell(6,3)
+  CALL toggleCell(3,2)
+  CALL toggleCell(4,2)
+  CALL toggleCell(5,2)
+RETURN
+
+displayBeacon:
+  CALL clearBoard
+  CALL toggleCell(5,5)
+  CALL toggleCell(6,5)
+  CALL toggleCell(5,6)
+  CALL toggleCell(6,6)
+
+  CALL toggleCell(7,7)
+  CALL toggleCell(7,8)
+  CALL toggleCell(8,7)
+  CALL toggleCell(8,8)
+RETURN
+
+displayGlider:
+  CALL clearBoard
+  CALL toggleCell(4,3)
+  CALL toggleCell(5,4)
+  CALL toggleCell(3,5)
+  CALL toggleCell(4,5)
+  CALL toggleCell(5,5)
+RETURN
 
 displayHelp:
   SAY 'Commands:'
