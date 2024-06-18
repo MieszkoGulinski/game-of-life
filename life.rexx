@@ -8,8 +8,8 @@ CALL FSSCOMMAND
 CALL FSSCURSOR 'ZCMD'
 CALL FSSFSET 'ZCMD' ''
 
-width = 20
-height = 20
+width = 30
+height = 30
 
 /* We use integer arrays, because writing and reading floating point matrices results in a round-off error */
 currentBoard = ICREATE(width * height)
@@ -30,7 +30,7 @@ DO FOREVER
         line = line || ' '
     END
 
-    CALL FSSTEXT line, y+4, 3, , #WHITE+#PROT
+    CALL FSSTEXT line, y+4, 3, , #YELLOW+#PROT
   END
 
   key = FSSREFRESH()
@@ -38,9 +38,15 @@ DO FOREVER
   IF key = 241 THEN CALL displayHelp
 
   userCommand = FSSFGET('ZCMD')
+
+  CALL TIME('RESET')
   CALL runCommand userCommand
+  executionTime = TIME('RESET')
+
   CALL FSSFSET 'ZCMD' ''
   CALL FSSCURSOR 'ZCMD'
+
+  CALL FSSTEXT executionTime || " s", 40, 3, , #RED+#PROT
 END
 
 CALL FSSCLOSE /* Terminate Screen Environment */
