@@ -114,7 +114,7 @@ performStep:
     DO x=1 TO width
       cellIndex = (y-1) * width + x
       currentValue = IGET(currentBoard, cellIndex)
-      aliveNeighbors = countAliveNeighbors(x,y)
+      aliveNeighbors = countAliveNeighbors(cellIndex, x, y)
       newValue = currentValue
 
       /* Apply Game of Life rules here */
@@ -133,26 +133,20 @@ performStep:
 RETURN
 
 countAliveNeighbors:
-  ARG cx, cy
+  /* 2x faster than implementation using 2x DO loop */
+  ARG centerCellIndex, cx, cy
   neighborsCount = 0
 
-  DO dx = -1 TO 1
-    DO dy = -1 TO 1
-      nx = cx + dx
-      ny = cy + dy
+  IF x > 1 & y > 1 THEN neighborsCount = neighborsCount + IGET(currentBoard, centerCellIndex - width - 1)
+  IF y > 1 THEN neighborsCount = neighborsCount + IGET(currentBoard, centerCellIndex - width)
+  IF y > 1 & x < width THEN neighborsCount = neighborsCount + IGET(currentBoard, centerCellIndex - width + 1)
 
-      /* Do not count the cell itself */
-      IF dx=0 & dy=0 THEN ITERATE
+  IF x > 1 THEN neighborsCount = neighborsCount + IGET(currentBoard, centerCellIndex - 1)
+  IF x < width THEN neighborsCount = neighborsCount + IGET(currentBoard, centerCellIndex + 1)
 
-      /* Boundary condition - cells outside the board are always 0 */
-      IF nx>0 & ny>0 & nx<=width & nx<=height THEN DO
-        neighborCellIndex = (ny-1) * width + nx
-        neighborCellValue = IGET(currentBoard, neighborCellIndex)
-        neighborsCount = neighborsCount + neighborCellValue
-      END
-
-    END
-  END
+  IF x > 1 & y < height THEN neighborsCount = neighborsCount + IGET(currentBoard, centerCellIndex + width - 1)
+  IF y < height THEN neighborsCount = neighborsCount + IGET(currentBoard, centerCellIndex + width)
+  IF x < width & y < height THEN neighborsCount = neighborsCount + IGET(currentBoard, centerCellIndex + width + 1)
 RETURN neighborsCount
 
 /* Predefined patterns */
