@@ -67,6 +67,7 @@ runCommand:
   IF command = 'TOAD' THEN CALL displayToad
   IF command = 'BEACON' THEN CALL displayBeacon
   IF command = 'GLIDER' THEN CALL displayGlider
+  IF command = 'PENTOMINO' THEN CALL displayPentomino
 
   PARSE VALUE command WITH x y
   IF datatype(x) = 'NUM' & datatype(y) = 'NUM' THEN CALL toggleCell(x,y)
@@ -115,9 +116,9 @@ performStep:
       cellIndex = (y-1) * width + x
       currentValue = IGET(currentBoard, cellIndex)
       aliveNeighbors = countAliveNeighbors(cellIndex, x, y)
-      newValue = currentValue
 
       /* Apply Game of Life rules here */
+      newValue = currentValue
       IF currentValue = 1 & aliveNeighbors < 2 THEN newValue = 0
       IF currentValue = 1 & aliveNeighbors > 3 THEN newValue = 0
       IF currentValue = 0 & aliveNeighbors = 3 THEN newValue = 1
@@ -133,7 +134,8 @@ performStep:
 RETURN
 
 countAliveNeighbors:
-  /* 2x faster than implementation using 2x DO loop */
+  /* slightly faster than implementation using 2x DO loop, as it uses less multiplications */
+  /* but 30x30 grid still takes about 0.5 s to evaluate */
   ARG centerCellIndex, cx, cy
   neighborsCount = 0
 
@@ -216,6 +218,15 @@ displayGlider:
   CALL toggleCell(5,5)
 RETURN
 
+displayPentomino:
+  CALL clearBoard
+  CALL toggleCell(14,13)
+  CALL toggleCell(15,13)
+  CALL toggleCell(13,14)
+  CALL toggleCell(14,14)
+  CALL toggleCell(14,15)
+RETURN
+
 displayHelp:
   SAY 'Commands:'
   SAY ''
@@ -229,4 +240,5 @@ displayHelp:
   SAY 'blinker - display a blinker (cyclically repeating shape)'
   SAY 'beacon - display a beacon (cyclickally repeating shape)'
   SAY 'glider - display a glider (permanently moving shape)'
+  SAY 'pentomino - display a R-pentomino (evolving shape)'
 RETURN

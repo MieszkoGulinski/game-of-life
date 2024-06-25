@@ -20,6 +20,7 @@ blinker
 toad
 beacon
 glider
+pentomino
 ```
 
 TODO: add more predefined patterns
